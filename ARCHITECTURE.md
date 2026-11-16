@@ -106,7 +106,7 @@ Règles de ce service :
 ## Arborescence
 
 ```
-app/src/main/java/sn/agentvocal/
+app/src/main/java/sn/jappale/
 ├── MainActivity.kt            chef d'orchestre, bouton unique
 ├── Config.kt                  codes USSD, noms de paquets, textes des boutons
 ├── voice/
