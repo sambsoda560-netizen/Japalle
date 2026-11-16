@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Vert au repos, doré pendant l'écoute -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_activated="true">
+        <shape android:shape="oval"><solid android:color="@color/or" /></shape>
+    </item>
     <item android:state_pressed="true">
-        <shape android:shape="oval">
-            <solid android:color="#0B5E3C" />
-        </shape>
+        <shape android:shape="oval"><solid android:color="@color/vert_fonce" /></shape>
     </item>
     <item>
-        <shape android:shape="oval">
-            <solid android:color="#12824F" />
-        </shape>
+        <shape android:shape="oval"><solid android:color="@color/vert" /></shape>
     </item>
 </selector>

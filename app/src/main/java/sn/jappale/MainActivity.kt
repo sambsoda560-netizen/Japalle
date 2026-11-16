@@ -1,10 +1,15 @@
 package sn.jappale
 
 import android.Manifest
+import android.animation.ObjectAnimator
+import android.animation.PropertyValuesHolder
+import android.animation.ValueAnimator
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.widget.Button
+import android.os.Handler
+import android.os.Looper
+import android.view.View
 import android.widget.TextView
 import sn.jappale.actions.ActionRunner
 import sn.jappale.intent.IntentParser
@@ -16,27 +21,46 @@ import sn.jappale.voice.SpeechToText
 
 /**
  * L'écran unique : un bouton.
- * REPOS → ECOUTE_DEMANDE → ECOUTE_CONFIRMATION → EXECUTION → REPOS
+ * REPOS → ECOUTE_DEMANDE → PARLE → ECOUTE_CONFIRMATION → EXECUTION → REPOS
  */
 class MainActivity : Activity() {
 
-    private enum class Etat { REPOS, ECOUTE_DEMANDE, ECOUTE_CONFIRMATION, EXECUTION }
+    private enum class Etat { REPOS, ECOUTE_DEMANDE, PARLE, ECOUTE_CONFIRMATION, EXECUTION }
 
-    private lateinit var bouton: Button
+    private lateinit var bouton: View
+    private lateinit var halo: View
     private lateinit var texteEtat: TextView
+    private lateinit var pulsation: ObjectAnimator
     private lateinit var oreille: SpeechToText
     private lateinit var voix: Speaker
     private lateinit var actions: ActionRunner
     private val cerveau: IntentParser = RuleBasedParser()
+    private val main = Handler(Looper.getMainLooper())
 
     private var etat = Etat.REPOS
+        set(valeur) {
+            field = valeur
+            mettreAJourVisuel()
+        }
     private var enAttente: Intention? = null
+    private var essaisConfirmation = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         bouton = findViewById(R.id.bouton)
+        halo = findViewById(R.id.halo)
         texteEtat = findViewById(R.id.etat)
+
+        pulsation = ObjectAnimator.ofPropertyValuesHolder(
+            halo,
+            PropertyValuesHolder.ofFloat(View.SCALE_X, 1f, 1.12f),
+            PropertyValuesHolder.ofFloat(View.SCALE_Y, 1f, 1.12f),
+        ).apply {
+            duration = 700
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.REVERSE
+        }
 
         oreille = AndroidSpeechToText(this)
         voix = Speaker(this)
@@ -46,6 +70,8 @@ class MainActivity : Activity() {
     }
 
     override fun onDestroy() {
+        main.removeCallbacksAndMessages(null)
+        pulsation.cancel()
         oreille.release()
         voix.release()
         super.onDestroy()
@@ -78,25 +104,46 @@ class MainActivity : Activity() {
         }
     }
 
+    // ---- 1. La demande ----
+
     private fun ecouterDemande() {
         etat = Etat.ECOUTE_DEMANDE
         afficher("Je t'écoute…")
-        oreille.listen(onResult = ::surDemande, onFailure = ::surEchec)
+        oreille.listen(
+            onResult = ::surDemande,
+            onFailure = { message -> retourAuRepos("$message Appuie pour recommencer.") },
+        )
     }
 
     private fun surDemande(phrase: String) {
         val intention = cerveau.parse(phrase)
         if (intention is Intention.Inconnue) {
-            retourAuRepos("Je n'ai pas compris. Appuie et répète.")
+            retourAuRepos("Je n'ai pas compris. Appuie et répète.", entendu = phrase)
             return
         }
         enAttente = intention
-        val question = intention.question()
-        afficher(question)
-        voix.say(question) {
+        essaisConfirmation = 0
+        poserQuestion(intention.question())
+    }
+
+    // ---- 2. La confirmation ----
+
+    private fun poserQuestion(question: String, entendu: String? = null) {
+        etat = Etat.PARLE
+        afficher(question, entendu)
+        voix.say(question) { ecouterConfirmation() }
+    }
+
+    private fun ecouterConfirmation() {
+        essaisConfirmation++
+        // Petite pause : le micro ne doit pas capter la fin de la voix de l'appli.
+        main.postDelayed({
             etat = Etat.ECOUTE_CONFIRMATION
-            oreille.listen(onResult = ::surConfirmation, onFailure = ::surEchec)
-        }
+            oreille.listen(
+                onResult = ::surConfirmation,
+                onFailure = { redemanderConfirmation(entendu = null) },
+            )
+        }, PAUSE_AVANT_ECOUTE_MS)
     }
 
     private fun surConfirmation(phrase: String) {
@@ -111,19 +158,26 @@ class MainActivity : Activity() {
                 retourAuRepos("Appuie et répète ta demande.")
             }
             false -> retourAuRepos("D'accord, j'annule.")
-            // Dans le doute, on n'agit pas.
-            null -> retourAuRepos("Je n'ai pas compris ta réponse. J'annule. Appuie pour recommencer.")
+            null -> redemanderConfirmation(entendu = phrase)
         }
     }
 
-    private fun surEchec(message: String) {
-        retourAuRepos("$message Appuie pour recommencer.")
+    /** Réponse pas claire : on redemande une fois. Dans le doute, on n'agit jamais. */
+    private fun redemanderConfirmation(entendu: String?) {
+        if (essaisConfirmation >= ESSAIS_MAX) {
+            retourAuRepos("Je n'ai pas compris ta réponse. J'annule. Appuie pour recommencer.", entendu)
+            return
+        }
+        poserQuestion("Dis seulement oui, ou non.", entendu)
     }
 
-    private fun retourAuRepos(message: String) {
+    // ---- Affichage et voix ----
+
+    private fun retourAuRepos(message: String, entendu: String? = null) {
         enAttente = null
         etat = Etat.REPOS
-        dire(message)
+        afficher(message, entendu)
+        voix.say(message)
     }
 
     private fun dire(message: String) {
@@ -131,12 +185,27 @@ class MainActivity : Activity() {
         voix.say(message)
     }
 
-    private fun afficher(message: String) {
-        texteEtat.text = message
+    /** [entendu] : ce que le micro a compris, affiché pour aider à régler l'appli. */
+    private fun afficher(message: String, entendu: String? = null) {
+        texteEtat.text = if (entendu == null) message else "$message\n\nJ'ai entendu : « $entendu »"
+    }
+
+    private fun mettreAJourVisuel() {
+        val ecoute = etat == Etat.ECOUTE_DEMANDE || etat == Etat.ECOUTE_CONFIRMATION
+        bouton.isActivated = ecoute
+        if (ecoute) {
+            if (!pulsation.isStarted) pulsation.start()
+        } else {
+            pulsation.cancel()
+            halo.scaleX = 1f
+            halo.scaleY = 1f
+        }
     }
 
     private companion object {
         const val DEMANDE_PERMISSIONS = 1
+        const val ESSAIS_MAX = 2
+        const val PAUSE_AVANT_ECOUTE_MS = 400L
         val PERMISSIONS = listOf(
             Manifest.permission.RECORD_AUDIO,
             Manifest.permission.CALL_PHONE,

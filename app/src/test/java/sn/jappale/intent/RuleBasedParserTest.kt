@@ -12,6 +12,7 @@ class RuleBasedParserTest {
     fun achatDeCredit() {
         assertEquals(Intention.AcheterCredit(1000), parser.parse("Achète-moi 1000 francs de crédit"))
         assertEquals(Intention.AcheterCredit(500), parser.parse("je veux du credit 500"))
+        assertEquals(Intention.AcheterCredit(5000), parser.parse("achète-moi du crédit 5000"))
     }
 
     @Test
@@ -53,6 +54,8 @@ class RuleBasedParserTest {
     fun confirmation() {
         assertEquals(true, parser.parseConfirmation("oui c'est ça"))
         assertEquals(true, parser.parseConfirmation("Waaw"))
+        assertEquals(true, parser.parseConfirmation("c'est ça"))
+        assertEquals(true, parser.parseConfirmation("voilà exactement"))
         assertEquals(false, parser.parseConfirmation("non"))
         assertEquals(false, parser.parseConfirmation("c'est pas ça"))
         assertNull(parser.parseConfirmation("euh"))

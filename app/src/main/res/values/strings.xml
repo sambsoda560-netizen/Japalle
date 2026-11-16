@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Jàppale</string>
-    <string name="parler">Parler</string>
+    <string name="slogan">Dis ce que tu veux, je le prépare.</string>
+    <string name="promesse">Ton code secret, c\'est toujours toi qui le tapes.</string>
     <string name="parler_description">Appuie et dis ce que tu veux</string>
     <string name="etat_repos">Appuie sur le bouton et dis ce que tu veux.</string>
     <string name="accessibilite_description">Jàppale prépare pour toi les envois dans Wave après ta confirmation à voix haute : il ouvre l\'écran d\'envoi et remplit le destinataire et le montant. Il ne lit jamais ton code secret et ne valide jamais un paiement à ta place.</string>

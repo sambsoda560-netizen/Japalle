@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Le même logo, en vert, pour l'en-tête de l'écran -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="60"
+    android:viewportHeight="60">
+    <group android:translateX="-24" android:translateY="-25">
+        <path android:fillColor="#0E7A4B" android:pathData="M40,32 H68 A10,10 0 0 1 78,42 V58 A10,10 0 0 1 68,68 H52 L40,79 V68 A10,10 0 0 1 30,58 V42 A10,10 0 0 1 40,32 Z" />
+        <path android:pathData="M44,45 V55" android:strokeColor="#FFFFFF" android:strokeLineCap="round" android:strokeWidth="5" />
+        <path android:pathData="M54,40 V60" android:strokeColor="#FFFFFF" android:strokeLineCap="round" android:strokeWidth="5" />
+        <path android:pathData="M64,46 V54" android:strokeColor="#FFFFFF" android:strokeLineCap="round" android:strokeWidth="5" />
+    </group>
+</vector>

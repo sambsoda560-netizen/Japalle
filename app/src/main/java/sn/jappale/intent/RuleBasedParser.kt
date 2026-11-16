@@ -41,6 +41,8 @@ class RuleBasedParser : IntentParser {
         val mots = text.lowercase().split(Regex("""[^\p{L}]+""")).filter { it.isNotEmpty() }
         if (mots.any { it in MOTS_NON }) return false
         if (mots.any { it in MOTS_OUI }) return true
+        // "c'est ça", "c'est bon" : la réponse la plus naturelle à une question
+        if (EXPRESSION_OUI.containsMatchIn(text.lowercase())) return true
         return null
     }
 
@@ -63,7 +65,11 @@ class RuleBasedParser : IntentParser {
 
     private companion object {
         val MOTS_ENVOI = listOf("envoi", "envoy", "transf", "vire")
-        val MOTS_OUI = setOf("oui", "ouais", "ok", "okay", "accord", "exact", "waaw", "waw")
+        val MOTS_OUI = setOf(
+            "oui", "ouais", "ouai", "wi", "yes", "ok", "okay", "accord", "exact", "exactement",
+            "voilà", "voila", "confirme", "valide", "waaw", "waw",
+        )
+        val EXPRESSION_OUI = Regex("""c.?est (ça|ca|bon|cela)""")
         val MOTS_NON = setOf("non", "pas", "annule", "annuler", "arrête", "stop", "déet", "deedeet")
 
         /** "à Fatou", "a fatou", "au 77 123 45 67" */

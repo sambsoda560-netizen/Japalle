@@ -11,7 +11,7 @@ flowchart TD
     A[Appui sur le bouton] --> B[Écoute<br/>voix → texte]
     B --> C[Compréhension<br/>texte → intention]
     C -->|pas compris| A2[« Je n'ai pas compris »]
-    C --> D[Confirmation vocale<br/>« Tu veux …, c'est ça ? »]
+    C --> D[Confirmation vocale<br/>« Tu veux … ? Dis oui, ou non. »]
     D -->|non| A2
     D -->|oui| E[Exécution par script fixe]
     E --> F1[Code USSD<br/>crédit, Orange Money]
@@ -24,7 +24,7 @@ Exemple : « envoie 5 000 francs à Fatou »
 
 1. **Écoute** → `"envoie 5000 francs à Fatou"`
 2. **Compréhension** → `EnvoyerArgent(montant = 5000, destinataire = "Fatou", service = WAVE)`
-3. **Confirmation** → « Tu veux envoyer 5000 francs à Fatou avec Wave, c'est ça ? » → « oui »
+3. **Confirmation** → « Tu veux envoyer 5000 francs à Fatou avec Wave ? Dis oui, ou non. » → « oui »
 4. **Exécution** → ouvrir Wave, appuyer sur « Envoyer », remplir le destinataire et le montant
 5. **Arrêt** → l'appli dit « Vérifie, puis tape ton code secret » et ne touche plus à rien
 

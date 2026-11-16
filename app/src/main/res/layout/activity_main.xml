@@ -2,29 +2,101 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center"
+    android:background="@color/creme"
+    android:fitsSystemWindows="true"
+    android:gravity="center_horizontal"
     android:orientation="vertical"
     android:padding="24dp">
 
-    <Button
-        android:id="@+id/bouton"
-        android:layout_width="240dp"
-        android:layout_height="240dp"
-        android:background="@drawable/bouton_rond"
-        android:contentDescription="@string/parler_description"
-        android:text="@string/parler"
-        android:textAllCaps="false"
-        android:textColor="#FFFFFF"
-        android:textSize="32sp" />
+    <!-- En-tête : logo et nom -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
+        <ImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/logo" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:text="@string/app_name"
+            android:textColor="@color/vert"
+            android:textSize="32sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="@string/slogan"
+        android:textColor="@color/gris"
+        android:textSize="17sp" />
+
+    <Space
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Le bouton unique, avec son halo qui bat pendant l'écoute -->
+    <FrameLayout
+        android:layout_width="290dp"
+        android:layout_height="290dp">
+
+        <View
+            android:id="@+id/halo"
+            android:layout_width="250dp"
+            android:layout_height="250dp"
+            android:layout_gravity="center"
+            android:background="@drawable/halo" />
+
+        <ImageButton
+            android:id="@+id/bouton"
+            android:layout_width="210dp"
+            android:layout_height="210dp"
+            android:layout_gravity="center"
+            android:background="@drawable/bouton_rond"
+            android:contentDescription="@string/parler_description"
+            android:elevation="8dp"
+            android:padding="52dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_micro" />
+    </FrameLayout>
+
+    <!-- Ce que l'appli dit ou attend -->
     <TextView
         android:id="@+id/etat"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="28dp"
+        android:background="@drawable/carte"
         android:gravity="center"
+        android:lineSpacingMultiplier="1.15"
+        android:minHeight="96dp"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="18dp"
         android:text="@string/etat_repos"
-        android:textColor="#1B1B1B"
-        android:textSize="22sp" />
+        android:textColor="@color/encre"
+        android:textSize="21sp" />
+
+    <Space
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/promesse"
+        android:textColor="@color/gris"
+        android:textSize="14sp" />
 
 </LinearLayout>

@@ -21,9 +21,9 @@ sealed class Intention {
     /** La phrase dite à voix haute avant d'agir. */
     fun question(): String = when (this) {
         is AcheterCredit ->
-            "Tu veux acheter $montant francs de crédit, c'est ça ?"
+            "Tu veux acheter $montant francs de crédit ? Dis oui, ou non."
         is EnvoyerArgent ->
-            "Tu veux envoyer $montant francs à $destinataire avec ${service.label}, c'est ça ?"
+            "Tu veux envoyer $montant francs à $destinataire avec ${service.label} ? Dis oui, ou non."
         is Inconnue -> ""
     }
 }
