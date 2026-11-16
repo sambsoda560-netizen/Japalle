@@ -10,4 +10,10 @@
     <string name="reglage_terminer">Terminer le relevé et l\'envoyer</string>
     <string name="reglage_envoyer">Envoyer le relevé</string>
     <string name="reglage_consigne">Mode réglage activé. Ouvre l\'appli à régler (Wave, Orange Money…) et fais l\'opération à la main. Arrête-toi avant de taper ton code secret. Puis reviens ici et appuie sur « Terminer le relevé ».</string>
+    <string name="cerveau">Cerveau (IA)</string>
+    <string name="cerveau_titre">Cerveau de l\'agent (IA)</string>
+    <string name="cerveau_cle">Clé d\'API</string>
+    <string name="cerveau_modele">Nom du modèle</string>
+    <string name="enregistrer">Enregistrer</string>
+    <string name="annuler">Annuler</string>
 </resources>

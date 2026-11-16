@@ -16,6 +16,9 @@ sealed class Intention {
         val service: Service,
     ) : Intention()
 
+    /** Il manque une information : l'appli pose cette question et écoute la réponse. */
+    data class Precision(val question: String) : Intention()
+
     object Inconnue : Intention()
 
     /** La phrase dite à voix haute avant d'agir. */
@@ -24,6 +27,7 @@ sealed class Intention {
             "Tu veux acheter $montant francs de crédit ? Dis oui, ou non."
         is EnvoyerArgent ->
             "Tu veux envoyer $montant francs à $destinataire avec ${service.label} ? Dis oui, ou non."
+        is Precision -> this.question
         is Inconnue -> ""
     }
 }

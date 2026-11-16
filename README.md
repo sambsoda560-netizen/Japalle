@@ -15,6 +15,7 @@ Squelette de départ. Le code n'a **pas encore été compilé ni testé sur un t
 | Comprendre « achète du crédit » / « envoie de l'argent » | écrit (règles simples), tests unitaires fournis |
 | Achat de crédit : l'agent remplit le menu `#144#` | écrit, **menu à calibrer sur un vrai téléphone** |
 | Envoi Wave par le service d'accessibilité | squelette, **écrans Wave à calibrer** |
+| Compréhension par IA (Groq ou Grok), avec questions de précision | écrit, à tester avec une clé |
 | Wolof | plus tard |
 
 ## Obtenir l'appli sans Android Studio
@@ -27,6 +28,16 @@ Squelette de départ. Le code n'a **pas encore été compilé ni testé sur un t
 4. Si elle est rouge : cliquer sur l'étape en erreur et copier le message pour le corriger.
 
 Android limite l'activation de l'accessibilité pour les applis installées hors Play Store. Si le service est grisé dans les paramètres : `Paramètres > Applications > Jàppale > menu ⋮ > Autoriser les paramètres restreints`.
+
+## Cerveau (IA) : rendre l'agent plus intelligent
+
+Sans réglage, l'agent comprend avec des mots-clés. Avec une clé d'API, il utilise un modèle de langage : phrases libres, montants en toutes lettres, et questions quand il manque une information (« Combien ? », « À qui ? »).
+
+1. Créer une clé d'API chez le fournisseur choisi : Groq (`console.groq.com`) ou xAI pour Grok (`console.x.ai`).
+2. Dans Jàppale, appuyer sur **Cerveau (IA)**, choisir le fournisseur, coller la clé, enregistrer.
+3. Si le nom du modèle proposé n'existe plus chez le fournisseur, l'écran affiche l'erreur : il suffit de mettre un nom de modèle actuel.
+
+La clé reste sur le téléphone. **Ne jamais l'écrire dans le code : ce dépôt est public.** Si l'IA ne répond pas (pas d'internet, clé invalide), l'agent retombe sur les mots-clés.
 
 ## Mode réglage : apprendre les écrans d'une appli
 

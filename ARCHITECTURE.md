@@ -36,7 +36,7 @@ Chaque bloc est derrière une interface, pour pouvoir le remplacer sans toucher 
 |---|---|---|---|
 | Écoute | `voice/SpeechToText` | reconnaissance vocale d'Android, `fr-FR` | modèle wolof (Kiriku ASR, BuzzASR…) sur un serveur |
 | Parole | `voice/Speaker` | synthèse vocale d'Android | voix wolof (xTTS GalsenAI, Adia TTS) ou audios préenregistrés |
-| Compréhension | `intent/IntentParser` | règles simples (mots-clés, montants) | un LLM qui renvoie la même structure `Intention` |
+| Compréhension | `intent/IntentParser` | un LLM par API (`LlmParser`), avec les règles simples en secours (`RuleBasedParser`) | le même LLM, avec des consignes en wolof |
 | Exécution | `actions/` + `accessibility/` | scripts fixes | les mêmes scripts, plus nombreux |
 
 `MainActivity` fait le chef d'orchestre : une petite machine à états (`REPOS → ECOUTE_DEMANDE → ECOUTE_CONFIRMATION → EXECUTION`).
@@ -47,6 +47,7 @@ Une intention est une demande comprise et complète. Liste actuelle (`intent/Int
 
 - `AcheterCredit(montant)`
 - `EnvoyerArgent(montant, destinataire, service)` avec `service` = Wave ou Orange Money
+- `Precision(question)` : il manque une information, l'appli pose la question et écoute la réponse
 - `Inconnue` : l'appli demande de répéter
 
 Ajouter une action = ajouter une intention, sa phrase de confirmation, et son script.
@@ -91,6 +92,12 @@ Règles de ce service :
 - Il abandonne si une étape ne trouve pas son bouton au bout de quelques secondes.
 - Tout script finit par `StopForUser` : jamais de saisie du code secret, jamais de validation finale.
 
+## Ce que l'IA a le droit de faire
+
+L'IA reçoit le texte de la demande et renvoie une fiche : action, montant, destinataire, service, ou une question à poser. C'est tout. Elle ne voit pas l'écran, ne connaît pas le code secret et ne déclenche rien : la fiche passe par la confirmation vocale, puis par un script fixe.
+
+Le texte de la demande est envoyé au fournisseur d'IA par internet. Rien d'autre ne sort du téléphone.
+
 ## Pourquoi « l'IA comprend, le script exécute »
 
 - **Sécurité** : une IA qui se trompe peut mal comprendre une phrase, mais la confirmation vocale rattrape l'erreur. Elle ne peut pas appuyer sur un mauvais bouton, parce qu'elle n'appuie sur rien.
@@ -102,7 +109,7 @@ Règles de ce service :
 - Lire, stocker ou taper un code secret.
 - Valider un paiement à la place de l'utilisateur.
 - Agir sans confirmation vocale.
-- Envoyer le contenu de l'écran d'une autre appli sur internet.
+- Envoyer le contenu de l'écran d'une autre appli sur internet (le mode réglage produit un relevé que l'utilisateur choisit lui-même de partager).
 
 ## Risques connus
 
@@ -126,7 +133,9 @@ app/src/main/java/sn/jappale/
 ├── intent/
 │   ├── Intention.kt           les demandes possibles + phrases de confirmation
 │   ├── IntentParser.kt        interface
-│   └── RuleBasedParser.kt     compréhension par règles (français)
+│   ├── LlmParser.kt           compréhension par IA (API compatible OpenAI)
+│   ├── LlmReponse.kt          consigne donnée à l'IA et lecture de sa réponse
+│   └── RuleBasedParser.kt     compréhension par règles, en secours
 ├── actions/
 │   └── ActionRunner.kt        choisit USSD ou script d'accessibilité
 └── accessibility/

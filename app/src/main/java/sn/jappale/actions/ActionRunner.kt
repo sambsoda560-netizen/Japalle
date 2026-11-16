@@ -33,7 +33,7 @@ class ActionRunner(
                 Service.WAVE -> envoyerAvecWave(intention)
                 Service.ORANGE_MONEY -> envoyerAvecOrangeMoney(intention)
             }
-            is Intention.Inconnue -> dire("Je n'ai pas compris.")
+            is Intention.Precision, is Intention.Inconnue -> dire("Je n'ai pas compris.")
         }
     }
 

@@ -27,4 +27,6 @@ android {
 
 dependencies {
     testImplementation("junit:junit:4.13.2")
+    // org.json fait partie d'Android ; il faut la vraie bibliothèque pour les tests sur ordinateur.
+    testImplementation("org.json:json:20240303")
 }

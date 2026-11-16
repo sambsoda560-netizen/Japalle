@@ -3,6 +3,8 @@
 
     <!-- Écouter la demande de l'utilisateur -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- Interroger le service d'IA qui comprend la demande -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <!-- Composer un code USSD à sa place -->
     <uses-permission android:name="android.permission.CALL_PHONE" />
 

@@ -10,7 +10,11 @@ package sn.jappale.intent
  */
 class RuleBasedParser : IntentParser {
 
-    override fun parse(text: String): Intention {
+    override fun parse(echanges: List<String>, onResult: (Intention) -> Unit) {
+        onResult(comprendre(echanges.joinToString(" ")))
+    }
+
+    fun comprendre(text: String): Intention {
         val phrase = text.trim()
         val minuscules = phrase.lowercase()
 

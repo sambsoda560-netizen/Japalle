@@ -5,30 +5,36 @@ import android.animation.ObjectAnimator
 import android.animation.PropertyValuesHolder
 import android.animation.ValueAnimator
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
+import android.text.InputType
 import android.view.View
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.TextView
 import sn.jappale.accessibility.AgentAccessibilityService
 import sn.jappale.actions.ActionRunner
-import sn.jappale.intent.IntentParser
 import sn.jappale.intent.Intention
-import sn.jappale.intent.RuleBasedParser
+import sn.jappale.intent.LlmParser
 import sn.jappale.voice.AndroidSpeechToText
 import sn.jappale.voice.Speaker
 import sn.jappale.voice.SpeechToText
 
 /**
  * L'écran unique : un bouton.
- * REPOS → ECOUTE_DEMANDE → PARLE → ECOUTE_CONFIRMATION → EXECUTION → REPOS
+ * REPOS → ECOUTE_DEMANDE → REFLECHIT → PARLE → ECOUTE_CONFIRMATION → EXECUTION → REPOS
+ * (avec un retour à ECOUTE_DEMANDE quand il manque une information)
  */
 class MainActivity : Activity() {
 
-    private enum class Etat { REPOS, ECOUTE_DEMANDE, PARLE, ECOUTE_CONFIRMATION, EXECUTION }
+    private enum class Etat { REPOS, ECOUTE_DEMANDE, REFLECHIT, PARLE, ECOUTE_CONFIRMATION, EXECUTION }
 
     private lateinit var bouton: View
     private lateinit var halo: View
@@ -39,7 +45,10 @@ class MainActivity : Activity() {
     private lateinit var oreille: SpeechToText
     private lateinit var voix: Speaker
     private lateinit var actions: ActionRunner
-    private val cerveau: IntentParser = RuleBasedParser()
+    private lateinit var reglages: Reglages
+    private lateinit var cerveau: LlmParser
+    private val echanges = mutableListOf<String>()
+    private var precisions = 0
     private val main = Handler(Looper.getMainLooper())
 
     private var etat = Etat.REPOS
@@ -67,6 +76,8 @@ class MainActivity : Activity() {
             repeatMode = ValueAnimator.REVERSE
         }
 
+        reglages = Reglages(this)
+        cerveau = LlmParser(reglages)
         oreille = AndroidSpeechToText(this)
         voix = Speaker(this)
         actions = ActionRunner(this) { message, detail ->
@@ -77,6 +88,7 @@ class MainActivity : Activity() {
         bouton.setOnClickListener { surAppui() }
         lienReglage = findViewById(R.id.reglage)
         lienReglage.setOnClickListener { basculerReleve() }
+        findViewById<View>(R.id.cerveau).setOnClickListener { ouvrirReglagesIA() }
     }
 
     override fun onDestroy() {
@@ -117,6 +129,12 @@ class MainActivity : Activity() {
     // ---- 1. La demande ----
 
     private fun ecouterDemande() {
+        echanges.clear()
+        precisions = 0
+        ecouter()
+    }
+
+    private fun ecouter() {
         etat = Etat.ECOUTE_DEMANDE
         afficher("Je t'écoute…")
         oreille.listen(
@@ -126,14 +144,40 @@ class MainActivity : Activity() {
     }
 
     private fun surDemande(phrase: String) {
-        val intention = cerveau.parse(phrase)
-        if (intention is Intention.Inconnue) {
-            retourAuRepos("Je n'ai pas compris. Appuie et répète.", entendu = phrase)
-            return
+        echanges.add(phrase)
+        etat = Etat.REFLECHIT
+        afficher("Je réfléchis…", phrase)
+        cerveau.parse(echanges.toList()) { intention ->
+            if (!isDestroyed) surIntention(intention, phrase)
         }
-        enAttente = intention
-        essaisConfirmation = 0
-        poserQuestion(intention.question())
+    }
+
+    private fun surIntention(intention: Intention, phrase: String) {
+        // Pendant les tests : si l'IA a échoué, on montre pourquoi.
+        val detail = cerveau.derniereErreur?.let { "$phrase » — IA indisponible : « $it" } ?: phrase
+        when (intention) {
+            is Intention.Inconnue ->
+                retourAuRepos("Je n'ai pas compris. Appuie et répète.", entendu = detail)
+
+            is Intention.Precision -> {
+                if (precisions >= PRECISIONS_MAX) {
+                    retourAuRepos("Je n'ai pas tout compris. Appuie et recommence.", entendu = detail)
+                    return
+                }
+                precisions++
+                etat = Etat.PARLE
+                afficher(intention.question, detail)
+                voix.say(intention.question) {
+                    main.postDelayed({ ecouter() }, PAUSE_AVANT_ECOUTE_MS)
+                }
+            }
+
+            else -> {
+                enAttente = intention
+                essaisConfirmation = 0
+                poserQuestion(intention.question())
+            }
+        }
     }
 
     // ---- 2. La confirmation ----
@@ -179,6 +223,64 @@ class MainActivity : Activity() {
             return
         }
         poserQuestion("Dis seulement oui, ou non.", entendu)
+    }
+
+    // ---- Réglages de l'IA ----
+
+    /** Choix du service d'IA et saisie de la clé, gardés sur le téléphone. */
+    private fun ouvrirReglagesIA() {
+        val marge = (20 * resources.displayMetrics.density).toInt()
+        val fournisseurs = Fournisseur.values()
+        val groupe = RadioGroup(this)
+        val boutons = fournisseurs.map { fournisseur ->
+            RadioButton(this).apply {
+                id = View.generateViewId()
+                text = fournisseur.nom
+                groupe.addView(this)
+            }
+        }
+        val champCle = EditText(this).apply {
+            hint = getString(R.string.cerveau_cle)
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            setText(reglages.cle)
+        }
+        val champModele = EditText(this).apply {
+            hint = getString(R.string.cerveau_modele)
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+            setText(reglages.modele)
+        }
+        boutons[reglages.fournisseur.ordinal].isChecked = true
+        groupe.setOnCheckedChangeListener { _, id ->
+            val choisi = fournisseurs[boutons.indexOfFirst { it.id == id }.coerceAtLeast(0)]
+            champModele.setText(choisi.modeleParDefaut)
+        }
+        val contenu = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(marge, marge / 2, marge, 0)
+            addView(groupe)
+            addView(champCle)
+            addView(champModele)
+        }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.cerveau_titre)
+            .setView(contenu)
+            .setPositiveButton(R.string.enregistrer) { _, _ ->
+                val choisi = fournisseurs[boutons.indexOfFirst { it.isChecked }.coerceAtLeast(0)]
+                reglages.enregistrer(
+                    choisi,
+                    champCle.text.toString().trim(),
+                    champModele.text.toString().trim(),
+                )
+                afficher(
+                    if (reglages.cle.isBlank()) {
+                        "Pas de clé : j'utilise la compréhension simple."
+                    } else {
+                        "IA réglée sur ${choisi.nom}. Appuie sur le bouton pour essayer."
+                    },
+                )
+            }
+            .setNegativeButton(R.string.annuler, null)
+            .show()
     }
 
     // ---- Mode réglage ----
@@ -250,6 +352,7 @@ class MainActivity : Activity() {
     private companion object {
         const val DEMANDE_PERMISSIONS = 1
         const val ESSAIS_MAX = 2
+        const val PRECISIONS_MAX = 3
         const val PAUSE_AVANT_ECOUTE_MS = 400L
         val PERMISSIONS = listOf(
             Manifest.permission.RECORD_AUDIO,
