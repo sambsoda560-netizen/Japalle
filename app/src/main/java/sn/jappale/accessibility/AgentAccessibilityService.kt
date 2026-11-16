@@ -117,6 +117,14 @@ class AgentAccessibilityService : AccessibilityService() {
         return texte.take(60_000)
     }
 
+    private fun compter(noeud: AccessibilityNodeInfo): Int {
+        var total = 1
+        for (i in 0 until noeud.childCount) {
+            noeud.getChild(i)?.let { total += compter(it) }
+        }
+        return total
+    }
+
     private fun ecouterToutesLesApplis(toutes: Boolean) {
         val info = serviceInfo ?: return
         info.packageNames = if (toutes) null else Config.PAQUETS_AUTORISES.toTypedArray()
@@ -127,22 +135,33 @@ class AgentAccessibilityService : AccessibilityService() {
         if (releve.size >= Config.RELEVE_ECRANS_MAX) return
         val racine = rootInActiveWindow ?: return
         val paquet = racine.packageName?.toString() ?: return
-        if (paquet == packageName || paquet == "com.android.systemui") return
-        val lignes = StringBuilder("=== écran de $paquet ===")
+        if (paquet == packageName || PAQUETS_IGNORES.any { paquet.contains(it) }) return
+        val lignes = StringBuilder()
         decrire(racine, lignes)
-        releve.add(lignes.toString().take(4_000))
+        if (lignes.isEmpty()) {
+            // À distinguer d'un oubli : l'appli est bien à l'écran, mais ne montre rien.
+            lignes.append("\n(rien de lisible : ")
+                .append(compter(racine))
+                .append(" éléments, sans texte ni bouton)")
+        }
+        releve.add("=== écran de $paquet ===$lignes".take(4_000))
     }
 
     /** Une ligne par élément utile : [B] = cliquable, [E] = champ de saisie. Les chiffres sont masqués. */
     private fun decrire(noeud: AccessibilityNodeInfo, sortie: StringBuilder) {
         val texte = (noeud.text ?: noeud.contentDescription)?.toString()?.trim().orEmpty()
-        if (texte.isNotEmpty() || noeud.isEditable) {
+        val actionnable = noeud.isEditable || noeud.isClickable
+        if (texte.isNotEmpty() || actionnable) {
             val marque = when {
                 noeud.isEditable -> "[E] "
                 noeud.isClickable -> "[B] "
                 else -> ""
             }
-            sortie.append('\n').append(marque).append(texte.replace(CHIFFRES, "#"))
+            sortie.append('\n').append(marque)
+                .append(if (texte.isEmpty()) "(sans texte)" else texte.replace(CHIFFRES, "#"))
+            // Le nom technique de l'élément aide à écrire le script quand il n'a pas de texte.
+            val nom = noeud.viewIdResourceName?.substringAfterLast('/')
+            if (actionnable && nom != null) sortie.append("  {").append(nom).append('}')
         }
         for (i in 0 until noeud.childCount) {
             noeud.getChild(i)?.let { decrire(it, sortie) }
@@ -317,6 +336,9 @@ class AgentAccessibilityService : AccessibilityService() {
     companion object {
         private const val TAG = "Jappale"
         private val CHIFFRES = Regex("""\d""")
+
+        /** Écrans sans intérêt pour un relevé : accueil du téléphone, clavier, barre système. */
+        private val PAQUETS_IGNORES = listOf("launcher", "systemui", "inputmethod", "keyboard")
 
         /** Non nul quand l'utilisateur a activé le service dans les paramètres. */
         @Volatile

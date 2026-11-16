@@ -7,7 +7,7 @@ Ces valeurs sont dans `Config.kt`. Elles ont été posées pour démarrer et ne 
 | Nom de paquet de Wave | `com.wave.personal` | page Play Store de Wave (paramètre `id=` dans l'adresse) |
 | Boutons de l'accueil de Wave | « Crédit », « Transfert » | si l'agent bloque, Jàppale affiche le bouton cherché et l'écran qu'il a vu |
 | Ordre des champs dans Wave | destinataire, puis montant | idem |
-| Wave laisse l'accessibilité lire ses écrans | inconnu | étape 1 de la feuille de route |
+| Wave laisse l'accessibilité lire ses écrans | **oui pour l'écran du code** (relevé du 16 nov. 2026, téléphone Transsion) ; accueil et écran « Crédit » pas encore vus | refaire un relevé en allant jusqu'à l'achat |
 | Lignes du menu `#144#` pour le crédit | on cherche « crédit », puis « moi » | lancer un achat : si l'agent se trompe, l'écran de Jàppale affiche le menu qu'il a lu |
 | Appli qui affiche les fenêtres USSD | `com.android.phone` | si l'agent ne remplit rien, la marque du téléphone utilise un autre nom |
 | Boutons d'envoi des fenêtres USSD | Envoyer, Send, OK… | idem |
