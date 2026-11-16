@@ -48,20 +48,32 @@ class ActionRunner(
             composerUssd(Config.USSD_MENU)
             return
         }
-        // TODO après le relevé des écrans de Wave : choisir le numéro et saisir le montant.
-        jouerDansWave(
-            Step.ClickText(Config.WAVE_BOUTONS_CREDIT),
-            Step.StopForUser(
-                "Je t'ai ouvert l'achat de crédit. Choisis le numéro et mets ${intention.montant} francs.",
-            ),
+        val montant = intention.montant.toString()
+        val etapes = mutableListOf(
+            Step.ClickText(Config.WAVE_ACCUEIL_CREDIT),
+            Step.ClickText(Config.WAVE_MON_NUMERO),
+            Step.TypeText(montant, hint = Config.WAVE_CHAMP_MONTANT),
+            // On ne va pas plus loin tant que l'écran n'affiche pas exactement ce montant.
+            Step.VerifyField(montant),
         )
+        if (Config.WAVE_VALIDER_ACHAT_CREDIT) {
+            etapes += Step.ClickText(Config.WAVE_BOUTON_ACHETER)
+            etapes += Step.StopForUser(
+                "J'ai lancé l'achat de $montant francs de crédit sur ton numéro. Regarde l'écran de Wave.",
+            )
+        } else {
+            etapes += Step.StopForUser(
+                "J'ai mis $montant francs de crédit pour ton numéro. Appuie sur Acheter pour valider.",
+            )
+        }
+        jouerDansWave(*etapes.toTypedArray())
     }
 
     private fun envoyerAvecWave(intention: Intention.EnvoyerArgent) {
-        // TODO après le relevé des écrans de Wave : choisir la personne et saisir le montant.
+        // TODO après le relevé de l'écran du montant : choisir la personne et saisir le montant.
         jouerDansWave(
-            Step.ClickText(Config.WAVE_BOUTONS_TRANSFERT),
-            Step.TypeText(intention.destinataire),
+            Step.ClickText(Config.WAVE_ACCUEIL_TRANSFERT),
+            Step.TypeText(intention.destinataire, hint = Config.WAVE_CHAMP_DESTINATAIRE),
             Step.StopForUser(
                 "Choisis ${intention.destinataire} dans la liste, mets ${intention.montant} francs, " +
                     "vérifie, puis valide.",

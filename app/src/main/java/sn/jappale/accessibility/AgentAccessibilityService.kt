@@ -42,6 +42,7 @@ class AgentAccessibilityService : AccessibilityService() {
         val blocage = when (val etape = script?.steps?.getOrNull(index)) {
             is Step.ClickText -> "Je ne trouve pas le bouton « ${etape.labels.first()} »."
             is Step.TypeText -> "Je ne trouve pas où écrire « ${etape.value} »."
+            is Step.VerifyField -> "Le montant affiché n'est pas le bon, je n'ai rien validé."
             else -> "Je n'ai pas réussi à aller au bout."
         }
         val ecran = rootInActiveWindow?.let { racine ->
@@ -144,6 +145,8 @@ class AgentAccessibilityService : AccessibilityService() {
                 .append(compter(racine))
                 .append(" éléments, sans texte ni bouton)")
         }
+        // On ne garde jamais l'écran où l'on tape le code secret.
+        if (lignes.contains("code secret", ignoreCase = true)) return
         releve.add("=== écran de $paquet ===$lignes".take(4_000))
     }
 
@@ -231,7 +234,10 @@ class AgentAccessibilityService : AccessibilityService() {
         }
         val reussi = when (etape) {
             is Step.ClickText -> etape.labels.any { cliquer(racine, it) }
-            is Step.TypeText -> ecrire(racine, etape.value)
+            is Step.TypeText -> ecrire(racine, etape.value, etape.hint)
+            is Step.VerifyField -> premierChamp(racine) { champ ->
+                champ.text?.filter { it.isDigit() }?.toString() == etape.value && !champ.isShowingHintText
+            } != null
             is Step.StopForUser -> {
                 finish(etape.message)
                 return
@@ -241,14 +247,38 @@ class AgentAccessibilityService : AccessibilityService() {
 
         index++
         val suivante = enCours.steps.getOrNull(index)
-        if (suivante is Step.StopForUser) finish(suivante.message) else armerDelai(Config.SCRIPT_TIMEOUT_MS)
+        if (suivante is Step.StopForUser) {
+            finish(suivante.message)
+        } else {
+            armerDelai(Config.SCRIPT_TIMEOUT_MS)
+            // L'écran suivant n'envoie pas toujours de signal : on regarde de nouveau un peu plus tard.
+            handler.removeCallbacks(relance)
+            handler.postDelayed(relance, 600)
+        }
     }
 
-    private fun ecrire(racine: AccessibilityNodeInfo, valeur: String): Boolean {
-        val actif = racine.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
-        val champActif = actif?.takeIf { it.isEditable && estVide(it) }
-        val champ = champActif ?: premierChamp(racine, ::estVide) ?: return false
+    private val relance = Runnable {
+        val enCours = script
+        val racine = rootInActiveWindow
+        if (enCours != null && racine != null && racine.packageName?.toString() == enCours.targetPackage) {
+            avancer(enCours, racine)
+        }
+    }
+
+    private fun ecrire(racine: AccessibilityNodeInfo, valeur: String, libelle: String?): Boolean {
+        val convient = { champ: AccessibilityNodeInfo -> estVide(champ) && porteLeLibelle(champ, libelle) }
+        val champActif = racine.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
+            ?.takeIf { it.isEditable && convient(it) }
+        val champ = champActif ?: premierChamp(racine, convient) ?: return false
         return remplir(champ, valeur)
+    }
+
+    /** Vrai si le champ est bien celui visé ("Montant", "À"), pour ne jamais écrire ailleurs. */
+    private fun porteLeLibelle(champ: AccessibilityNodeInfo, libelle: String?): Boolean {
+        if (libelle == null) return true
+        return listOf(champ.hintText, champ.text).any {
+            it?.toString()?.trim().equals(libelle, ignoreCase = true)
+        }
     }
 
     // ---- Outils communs ----
@@ -259,13 +289,13 @@ class AgentAccessibilityService : AccessibilityService() {
     /** Le premier élément cliquable qui porte ce texte (lui-même ou l'un de ses parents). */
     private fun boutonCliquable(racine: AccessibilityNodeInfo, texte: String): AccessibilityNodeInfo? {
         val trouves = racine.findAccessibilityNodeInfosByText(texte) ?: return null
-        // D'abord les éléments dont le texte est exactement celui cherché ("Crédit"),
-        // avant ceux qui le contiennent seulement ("Achat crédit du 12 mars").
-        val (exacts, autres) = trouves.partition { noeud ->
+        // Seulement les éléments dont le texte est exactement celui cherché ("Crédit"),
+        // jamais ceux qui le contiennent seulement ("Achat crédit pour le 77…").
+        val exacts = trouves.filter { noeud ->
             noeud.text?.toString()?.trim().equals(texte, ignoreCase = true) ||
                 noeud.contentDescription?.toString()?.trim().equals(texte, ignoreCase = true)
         }
-        for (noeud in exacts + autres) {
+        for (noeud in exacts) {
             var candidat: AccessibilityNodeInfo? = noeud
             while (candidat != null && !candidat.isClickable) candidat = candidat.parent
             if (candidat != null) return candidat
@@ -305,6 +335,7 @@ class AgentAccessibilityService : AccessibilityService() {
 
     private fun reinitialiser() {
         handler.removeCallbacks(delaiDepasse)
+        handler.removeCallbacks(relance)
         script = null
         index = 0
         plan = null

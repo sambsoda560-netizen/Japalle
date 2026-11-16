@@ -20,8 +20,15 @@ sealed class Step {
     /** Appuyer sur le premier élément qui porte l'un de ces textes. */
     data class ClickText(val labels: List<String>) : Step()
 
-    /** Écrire dans le champ actif, ou dans le premier champ vide. */
-    data class TypeText(val value: String) : Step()
+    /**
+     * Écrire dans un champ vide.
+     * @param hint le libellé du champ visé ("Montant", "À"). Sans libellé : le premier champ vide.
+     *             Toujours le préciser quand l'écran précédent a lui aussi un champ.
+     */
+    data class TypeText(val value: String, val hint: String? = null) : Step()
+
+    /** Attendre qu'un champ affiche bien cette valeur, avant d'aller plus loin. */
+    data class VerifyField(val value: String) : Step()
 
     /** Fin du script : on rend la main à l'utilisateur et on lui dit quoi faire. */
     data class StopForUser(val message: String) : Step()

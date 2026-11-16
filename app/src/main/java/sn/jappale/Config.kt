@@ -8,9 +8,21 @@ object Config {
     /** Nom de paquet de l'appli Wave. À VÉRIFIER. */
     const val WAVE_PACKAGE = "com.wave.personal"
 
-    /** Boutons de l'accueil de Wave. À CALIBRER sur un vrai téléphone. */
-    val WAVE_BOUTONS_CREDIT = listOf("Crédit", "Credit", "Airtime")
-    val WAVE_BOUTONS_TRANSFERT = listOf("Transfert", "Envoyer", "Transfer", "Send")
+    // Textes de Wave, lus dans le relevé d'écrans du 16 novembre 2026.
+    // À revoir si Wave change son interface.
+    val WAVE_ACCUEIL_CREDIT = listOf("Crédit")
+    val WAVE_ACCUEIL_TRANSFERT = listOf("Transfert")
+    val WAVE_MON_NUMERO = listOf("Mon Numéro")
+    val WAVE_BOUTON_ACHETER = listOf("Acheter")
+    const val WAVE_CHAMP_MONTANT = "Montant"
+    const val WAVE_CHAMP_DESTINATAIRE = "À"
+
+    /**
+     * true : pour le crédit sur son propre numéro, l'agent appuie lui-même sur « Acheter »
+     * après la confirmation à voix haute et la vérification du montant affiché.
+     * false : il s'arrête juste avant et laisse l'utilisateur appuyer.
+     */
+    const val WAVE_VALIDER_ACHAT_CREDIT = true
 
     /**
      * Les menus USSD (#144#) sont désactivés pour l'instant : tout passe par les applis.

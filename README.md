@@ -13,9 +13,9 @@ Squelette de départ. Le code n'a **pas encore été compilé ni testé sur un t
 | Bouton unique + écoute en français | écrit, à tester |
 | Confirmation vocale (« … ? Dis oui, ou non. ») | écrit, à tester |
 | Comprendre « achète du crédit » / « envoie de l'argent » | écrit (règles simples), tests unitaires fournis |
-| Achat de crédit dans Wave | ouvre Wave et l'écran « Crédit », puis guide à la voix ; **la suite attend le relevé des écrans** |
+| Achat de crédit dans Wave, pour son propre numéro | script complet écrit d'après un relevé réel ; **à tester avec un petit montant** |
 | Menus USSD `#144#` | écrit mais **désactivé** (`Config.USSD_ACTIF`) |
-| Envoi d'argent dans Wave | ouvre « Transfert » et écrit le nom, puis guide à la voix ; **la suite attend le relevé des écrans** |
+| Envoi d'argent dans Wave | ouvre « Transfert » et écrit le nom dans la recherche, puis guide à la voix ; **il manque le relevé de l'écran du montant** |
 | Appli Orange Money | pas encore : faire le mode réglage dans l'appli |
 | Compréhension par IA (Groq ou Grok), avec questions de précision | écrit, à tester avec une clé |
 | Wolof | plus tard |
