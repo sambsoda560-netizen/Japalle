@@ -301,7 +301,7 @@ class AgentAccessibilityService : AccessibilityService() {
 
     companion object {
         private const val TAG = "Jappale"
-        private val CHIFFRES = Regex("""\\d""")
+        private val CHIFFRES = Regex("""\d""")
 
         /** Non nul quand l'utilisateur a activé le service dans les paramètres. */
         @Volatile
