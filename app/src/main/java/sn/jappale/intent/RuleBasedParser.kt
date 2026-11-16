@@ -1,4 +1,4 @@
-package sn.agentvocal.intent
+package sn.jappale.intent
 
 /**
  * Compréhension par mots-clés, pour tester la chaîne en français.

@@ -1,4 +1,4 @@
-package sn.agentvocal
+package sn.jappale
 
 /**
  * Toutes les valeurs qui dépendent du terrain (opérateurs, applis tierces).
@@ -18,7 +18,7 @@ object Config {
     const val SCRIPT_TIMEOUT_MS = 8_000L
 
     /**
-     * Mettre à true pendant la calibration pour écrire dans Logcat (tag "AgentVocal")
+     * Mettre à true pendant la calibration pour écrire dans Logcat (tag "Jappale")
      * ce que le service voit à l'écran. Laisser à false sinon : l'écran de Wave
      * contient des informations privées (solde, contacts).
      */

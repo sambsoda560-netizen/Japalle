@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "sn.agentvocal"
+    namespace = "sn.jappale"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "sn.agentvocal"
+        applicationId = "sn.jappale"
         minSdk = 26
         targetSdk = 35
         versionCode = 1

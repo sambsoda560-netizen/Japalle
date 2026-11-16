@@ -1,10 +1,8 @@
-# Agent vocal
+# Jàppale
 
 Une appli Android à **un seul bouton** : tu appuies, tu dis ce que tu veux, l'appli répète pour confirmer, puis elle prépare l'action à ta place (acheter du crédit, envoyer de l'argent…). Le code secret, c'est toujours l'utilisateur qui le tape.
 
 L'objectif final est un agent qui parle **wolof**, pour les personnes peu ou pas lettrées. Cette première version fonctionne en **français**, pour tester toute la chaîne avant de brancher les modèles wolof.
-
-> Nom de travail : « agent-vocal ». À changer quand le vrai nom sera choisi.
 
 ## État du projet
 
@@ -24,18 +22,18 @@ Squelette de départ. Le code n'a **pas encore été compilé ni testé sur un t
 À chaque envoi de code sur GitHub, l'appli est compilée automatiquement.
 
 1. Sur GitHub, ouvrir l'onglet **Actions** et cliquer sur la dernière exécution de « Compiler l'appli ».
-2. Si elle est verte : en bas de la page, télécharger **agent-vocal-debug** (un fichier zip qui contient `app-debug.apk`).
+2. Si elle est verte : en bas de la page, télécharger **jappale-debug** (un fichier zip qui contient `app-debug.apk`).
 3. Envoyer l'APK sur le téléphone, l'ouvrir, et accepter l'installation depuis une source inconnue.
 4. Si elle est rouge : cliquer sur l'étape en erreur et copier le message pour le corriger.
 
-Android limite l'activation de l'accessibilité pour les applis installées hors Play Store. Si le service est grisé dans les paramètres : `Paramètres > Applications > Agent vocal > menu ⋮ > Autoriser les paramètres restreints`.
+Android limite l'activation de l'accessibilité pour les applis installées hors Play Store. Si le service est grisé dans les paramètres : `Paramètres > Applications > Jàppale > menu ⋮ > Autoriser les paramètres restreints`.
 
 ## Lancer le projet avec Android Studio
 
 1. Installer [Android Studio](https://developer.android.com/studio).
 2. Ouvrir ce dossier (`File > Open`). Android Studio télécharge Gradle et les dépendances.
 3. Brancher un téléphone Android (8.0 ou plus) en mode développeur, puis `Run`.
-4. Pour l'envoi Wave : activer le service dans `Paramètres > Accessibilité > Agent vocal`.
+4. Pour l'envoi Wave : activer le service dans `Paramètres > Accessibilité > Jàppale`.
 
 Tests de la compréhension des phrases : `./gradlew test` (ou clic droit sur `RuleBasedParserTest` dans Android Studio).
 

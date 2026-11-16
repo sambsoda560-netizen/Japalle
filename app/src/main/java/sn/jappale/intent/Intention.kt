@@ -1,4 +1,4 @@
-package sn.agentvocal.intent
+package sn.jappale.intent
 
 enum class Service(val label: String) {
     WAVE("Wave"),

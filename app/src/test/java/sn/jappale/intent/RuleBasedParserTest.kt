@@ -1,4 +1,4 @@
-package sn.agentvocal.intent
+package sn.jappale.intent
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull

@@ -7,7 +7,7 @@
 
 ## Étape 1 — Le test qui décide de tout : Wave et l'accessibilité
 - [ ] Activer le service d'accessibilité
-- [ ] Noter ce que le service voit sur l'écran d'envoi de Wave (journal `AgentVocal` dans Logcat)
+- [ ] Noter ce que le service voit sur l'écran d'envoi de Wave (journal `Jappale` dans Logcat)
 - [ ] Si Wave est lisible : calibrer les textes des boutons dans `Config.kt`
 - [ ] Si Wave est protégé : passer au plan B (ouvrir Wave et guider à la voix)
 

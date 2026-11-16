@@ -1,4 +1,4 @@
-package sn.agentvocal.accessibility
+package sn.jappale.accessibility
 
 import android.accessibilityservice.AccessibilityService
 import android.content.Intent
@@ -8,7 +8,7 @@ import android.os.Looper
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
-import sn.agentvocal.Config
+import sn.jappale.Config
 
 /**
  * Joue un UiScript dans une autre appli (Wave pour l'instant).
@@ -138,7 +138,7 @@ class AgentAccessibilityService : AccessibilityService() {
     }
 
     companion object {
-        private const val TAG = "AgentVocal"
+        private const val TAG = "Jappale"
 
         /** Non nul quand l'utilisateur a activé le service dans les paramètres. */
         @Volatile

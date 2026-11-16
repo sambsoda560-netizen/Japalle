@@ -1,4 +1,4 @@
-package sn.agentvocal.accessibility
+package sn.jappale.accessibility
 
 /**
  * Une suite d'étapes fixes à jouer dans une autre appli.

@@ -1,4 +1,4 @@
-package sn.agentvocal.intent
+package sn.jappale.intent
 
 /**
  * Transforme une phrase en intention.

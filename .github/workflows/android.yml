@@ -34,7 +34,7 @@ jobs:
       - name: Publier l'APK
         uses: actions/upload-artifact@v4
         with:
-          name: agent-vocal-debug
+          name: jappale-debug
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
 

@@ -1,4 +1,4 @@
-package sn.agentvocal
+package sn.jappale
 
 import android.Manifest
 import android.app.Activity
@@ -6,13 +6,13 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
-import sn.agentvocal.actions.ActionRunner
-import sn.agentvocal.intent.IntentParser
-import sn.agentvocal.intent.Intention
-import sn.agentvocal.intent.RuleBasedParser
-import sn.agentvocal.voice.AndroidSpeechToText
-import sn.agentvocal.voice.Speaker
-import sn.agentvocal.voice.SpeechToText
+import sn.jappale.actions.ActionRunner
+import sn.jappale.intent.IntentParser
+import sn.jappale.intent.Intention
+import sn.jappale.intent.RuleBasedParser
+import sn.jappale.voice.AndroidSpeechToText
+import sn.jappale.voice.Speaker
+import sn.jappale.voice.SpeechToText
 
 /**
  * L'écran unique : un bouton.

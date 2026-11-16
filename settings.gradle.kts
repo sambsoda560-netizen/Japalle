@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "agent-vocal"
+rootProject.name = "jappale"
 include(":app")

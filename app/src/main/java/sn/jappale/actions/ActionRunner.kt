@@ -1,4 +1,4 @@
-package sn.agentvocal.actions
+package sn.jappale.actions
 
 import android.Manifest
 import android.app.Activity
@@ -6,12 +6,12 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
-import sn.agentvocal.Config
-import sn.agentvocal.accessibility.AgentAccessibilityService
-import sn.agentvocal.accessibility.Step
-import sn.agentvocal.accessibility.UiScript
-import sn.agentvocal.intent.Intention
-import sn.agentvocal.intent.Service
+import sn.jappale.Config
+import sn.jappale.accessibility.AgentAccessibilityService
+import sn.jappale.accessibility.Step
+import sn.jappale.accessibility.UiScript
+import sn.jappale.intent.Intention
+import sn.jappale.intent.Service
 
 /**
  * Exécute une intention déjà confirmée par l'utilisateur.
@@ -57,7 +57,7 @@ class ActionRunner(
 
         val service = AgentAccessibilityService.instance
         if (service == null) {
-            say("Pour que je prépare l'envoi, active Agent vocal dans Accessibilité.")
+            say("Pour que je prépare l'envoi, active Jàppale dans Accessibilité.")
             activity.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
             return
         }

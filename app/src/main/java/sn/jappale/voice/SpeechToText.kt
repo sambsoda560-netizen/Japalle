@@ -1,4 +1,4 @@
-package sn.agentvocal.voice
+package sn.jappale.voice
 
 import android.content.Context
 import android.content.Intent
