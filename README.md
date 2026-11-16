@@ -19,7 +19,18 @@ Squelette de départ. Le code n'a **pas encore été compilé ni testé sur un t
 | Envoi Wave par le service d'accessibilité | squelette, **écrans Wave à calibrer** |
 | Wolof | plus tard |
 
-## Lancer le projet
+## Obtenir l'appli sans Android Studio
+
+À chaque envoi de code sur GitHub, l'appli est compilée automatiquement.
+
+1. Sur GitHub, ouvrir l'onglet **Actions** et cliquer sur la dernière exécution de « Compiler l'appli ».
+2. Si elle est verte : en bas de la page, télécharger **agent-vocal-debug** (un fichier zip qui contient `app-debug.apk`).
+3. Envoyer l'APK sur le téléphone, l'ouvrir, et accepter l'installation depuis une source inconnue.
+4. Si elle est rouge : cliquer sur l'étape en erreur et copier le message pour le corriger.
+
+Android limite l'activation de l'accessibilité pour les applis installées hors Play Store. Si le service est grisé dans les paramètres : `Paramètres > Applications > Agent vocal > menu ⋮ > Autoriser les paramètres restreints`.
+
+## Lancer le projet avec Android Studio
 
 1. Installer [Android Studio](https://developer.android.com/studio).
 2. Ouvrir ce dossier (`File > Open`). Android Studio télécharge Gradle et les dépendances.
