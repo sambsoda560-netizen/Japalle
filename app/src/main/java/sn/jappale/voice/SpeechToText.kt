@@ -13,7 +13,8 @@ import java.util.Locale
  * cette interface (par exemple un appel à un serveur qui fait tourner un modèle wolof).
  */
 interface SpeechToText {
-    fun listen(onResult: (String) -> Unit, onFailure: (String) -> Unit)
+    /** @param onReady appelé quand le micro écoute vraiment : avant, les mots sont perdus. */
+    fun listen(onReady: () -> Unit, onResult: (String) -> Unit, onFailure: (String) -> Unit)
     fun release()
 }
 
@@ -25,7 +26,7 @@ class AndroidSpeechToText(
 
     private var recognizer: SpeechRecognizer? = null
 
-    override fun listen(onResult: (String) -> Unit, onFailure: (String) -> Unit) {
+    override fun listen(onReady: () -> Unit, onResult: (String) -> Unit, onFailure: (String) -> Unit) {
         if (!SpeechRecognizer.isRecognitionAvailable(context)) {
             onFailure("La reconnaissance vocale n'est pas disponible sur ce téléphone.")
             return
@@ -46,7 +47,7 @@ class AndroidSpeechToText(
                 onFailure("Je n'ai pas bien entendu.")
             }
 
-            override fun onReadyForSpeech(params: Bundle?) {}
+            override fun onReadyForSpeech(params: Bundle?) = onReady()
             override fun onBeginningOfSpeech() {}
             override fun onRmsChanged(rmsdB: Float) {}
             override fun onBufferReceived(buffer: ByteArray?) {}
@@ -62,6 +63,9 @@ class AndroidSpeechToText(
             )
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, locale.toLanguageTag())
             putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+            // Laisser le temps de réfléchir : ne pas couper à la première petite pause.
+            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 1_800L)
+            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 1_800L)
         }
         nouveau.startListening(demande)
     }

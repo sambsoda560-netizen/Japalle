@@ -38,17 +38,45 @@ class ActionRunner(
     }
 
     private fun acheterCredit(intention: Intention.AcheterCredit) {
-        val service = serviceOuDemande() ?: return
-        service.startUssd(
-            UssdPlan(etapes = Config.USSD_ETAPES_CREDIT, montant = intention.montant),
-            onEnd = say,
+        if (Config.USSD_ACTIF) {
+            val service = serviceOuDemande() ?: return
+            service.startUssd(
+                UssdPlan(etapes = Config.USSD_ETAPES_CREDIT, montant = intention.montant),
+                onEnd = say,
+            )
+            dire("D'accord, je remplis le menu pour toi.")
+            composerUssd(Config.USSD_MENU)
+            return
+        }
+        // TODO après le relevé des écrans de Wave : choisir le numéro et saisir le montant.
+        jouerDansWave(
+            Step.ClickText(Config.WAVE_BOUTONS_CREDIT),
+            Step.StopForUser(
+                "Je t'ai ouvert l'achat de crédit. Choisis le numéro et mets ${intention.montant} francs.",
+            ),
         )
-        dire("D'accord, je remplis le menu pour toi.")
-        composerUssd(Config.USSD_MENU)
+    }
+
+    private fun envoyerAvecWave(intention: Intention.EnvoyerArgent) {
+        // TODO après le relevé des écrans de Wave : choisir la personne et saisir le montant.
+        jouerDansWave(
+            Step.ClickText(Config.WAVE_BOUTONS_TRANSFERT),
+            Step.TypeText(intention.destinataire),
+            Step.StopForUser(
+                "Choisis ${intention.destinataire} dans la liste, mets ${intention.montant} francs, " +
+                    "vérifie, puis valide.",
+            ),
+        )
     }
 
     private fun envoyerAvecOrangeMoney(intention: Intention.EnvoyerArgent) {
-        // TODO étape 3 : retrouver le numéro à partir du prénom dans les contacts.
+        if (!Config.USSD_ACTIF) {
+            dire(
+                "Je ne sais pas encore utiliser l'appli Orange Money. " +
+                    "Fais le mode réglage dans cette appli pour que j'apprenne.",
+            )
+            return
+        }
         val estUnNumero = intention.destinataire.all { it.isDigit() || it == '+' }
         if (!estUnNumero) {
             dire("Pour Orange Money, dis-moi le numéro de téléphone de la personne.")
@@ -67,26 +95,16 @@ class ActionRunner(
         composerUssd(Config.USSD_MENU)
     }
 
-    private fun envoyerAvecWave(intention: Intention.EnvoyerArgent) {
+    /** Ouvre Wave et joue ces étapes dedans. */
+    private fun jouerDansWave(vararg etapes: Step) {
         val lancement = activity.packageManager.getLaunchIntentForPackage(Config.WAVE_PACKAGE)
         if (lancement == null) {
             dire("Wave n'est pas installé sur ce téléphone.")
             return
         }
         val service = serviceOuDemande() ?: return
-
-        val script = UiScript(
-            targetPackage = Config.WAVE_PACKAGE,
-            steps = listOf(
-                Step.ClickText(Config.WAVE_BOUTON_ENVOYER),
-                Step.TypeText(intention.destinataire),
-                Step.TypeText(intention.montant.toString()),
-                Step.StopForUser(
-                    "Vérifie le nom et le montant. Si c'est bon, valide et tape ton code secret.",
-                ),
-            ),
-        )
-        service.start(script, onEnd = say)
+        service.start(UiScript(Config.WAVE_PACKAGE, etapes.toList()), onEnd = say)
+        dire("J'ouvre Wave. Si Wave demande ton code, tape-le, je continue après.")
         activity.startActivity(lancement)
     }
 

@@ -13,6 +13,7 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
 import android.text.InputType
+import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -34,7 +35,7 @@ import sn.jappale.voice.SpeechToText
  */
 class MainActivity : Activity() {
 
-    private enum class Etat { REPOS, ECOUTE_DEMANDE, REFLECHIT, PARLE, ECOUTE_CONFIRMATION, EXECUTION }
+    private enum class Etat { REPOS, PREPARE, ECOUTE_DEMANDE, REFLECHIT, PARLE, ECOUTE_CONFIRMATION, EXECUTION }
 
     private lateinit var bouton: View
     private lateinit var halo: View
@@ -81,7 +82,7 @@ class MainActivity : Activity() {
         oreille = AndroidSpeechToText(this)
         voix = Speaker(this)
         actions = ActionRunner(this) { message, detail ->
-            afficher(message, detail, etiquette = "Le menu disait")
+            afficher(message, detail, etiquette = "L'écran affichait")
             voix.say(message)
         }
 
@@ -134,10 +135,15 @@ class MainActivity : Activity() {
         ecouter()
     }
 
-    private fun ecouter() {
-        etat = Etat.ECOUTE_DEMANDE
-        afficher("Je t'écoute…")
+    /** [invite] : la question en cours, à laisser affichée pendant l'écoute. */
+    private fun ecouter(invite: String? = null) {
+        etat = Etat.PREPARE
+        afficher(invite ?: "Un instant…")
         oreille.listen(
+            onReady = {
+                signalerEcoute(Etat.ECOUTE_DEMANDE)
+                afficher(invite ?: "Parle maintenant, je t'écoute.")
+            },
             onResult = ::surDemande,
             onFailure = { message -> retourAuRepos("$message Appuie pour recommencer.") },
         )
@@ -168,7 +174,7 @@ class MainActivity : Activity() {
                 etat = Etat.PARLE
                 afficher(intention.question, detail)
                 voix.say(intention.question) {
-                    main.postDelayed({ ecouter() }, PAUSE_AVANT_ECOUTE_MS)
+                    main.postDelayed({ ecouter(invite = intention.question) }, PAUSE_AVANT_ECOUTE_MS)
                 }
             }
 
@@ -192,8 +198,8 @@ class MainActivity : Activity() {
         essaisConfirmation++
         // Petite pause : le micro ne doit pas capter la fin de la voix de l'appli.
         main.postDelayed({
-            etat = Etat.ECOUTE_CONFIRMATION
             oreille.listen(
+                onReady = { signalerEcoute(Etat.ECOUTE_CONFIRMATION) },
                 onResult = ::surConfirmation,
                 onFailure = { redemanderConfirmation(entendu = null) },
             )
@@ -319,6 +325,12 @@ class MainActivity : Activity() {
     }
 
     // ---- Affichage et voix ----
+
+    /** Le micro écoute vraiment : bouton doré, halo qui bat, petite vibration. */
+    private fun signalerEcoute(nouvelEtat: Etat) {
+        etat = nouvelEtat
+        bouton.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+    }
 
     private fun retourAuRepos(message: String, entendu: String? = null) {
         enAttente = null

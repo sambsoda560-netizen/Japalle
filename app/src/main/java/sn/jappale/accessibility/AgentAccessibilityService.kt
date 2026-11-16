@@ -37,15 +37,24 @@ class AgentAccessibilityService : AccessibilityService() {
     private var reponsesUssd = 0
     private var dernierEcranUssd: String? = null
 
+    /** Délai dépassé : on dit où ça bloque et on note l'écran, pour pouvoir régler le script. */
     private val delaiDepasse = Runnable {
-        finish("Je n'ai pas réussi à aller au bout. Continue toi-même, ou recommence.")
+        val blocage = when (val etape = script?.steps?.getOrNull(index)) {
+            is Step.ClickText -> "Je ne trouve pas le bouton « ${etape.labels.first()} »."
+            is Step.TypeText -> "Je ne trouve pas où écrire « ${etape.value} »."
+            else -> "Je n'ai pas réussi à aller au bout."
+        }
+        val ecran = rootInActiveWindow?.let { racine ->
+            StringBuilder("appli ${racine.packageName}").also { decrire(racine, it) }.toString().take(1_500)
+        }
+        finish("$blocage Continue toi-même.", detail = ecran)
     }
 
     fun start(script: UiScript, onEnd: (String, String?) -> Unit) {
         reinitialiser()
         this.script = script
         this.onEnd = onEnd
-        armerDelai(Config.SCRIPT_TIMEOUT_MS)
+        armerDelai(script.premiereAttenteMs)
     }
 
     fun startUssd(plan: UssdPlan, onEnd: (String, String?) -> Unit) {
@@ -202,7 +211,7 @@ class AgentAccessibilityService : AccessibilityService() {
             return
         }
         val reussi = when (etape) {
-            is Step.ClickText -> cliquer(racine, etape.label)
+            is Step.ClickText -> etape.labels.any { cliquer(racine, it) }
             is Step.TypeText -> ecrire(racine, etape.value)
             is Step.StopForUser -> {
                 finish(etape.message)
@@ -231,7 +240,13 @@ class AgentAccessibilityService : AccessibilityService() {
     /** Le premier élément cliquable qui porte ce texte (lui-même ou l'un de ses parents). */
     private fun boutonCliquable(racine: AccessibilityNodeInfo, texte: String): AccessibilityNodeInfo? {
         val trouves = racine.findAccessibilityNodeInfosByText(texte) ?: return null
-        for (noeud in trouves) {
+        // D'abord les éléments dont le texte est exactement celui cherché ("Crédit"),
+        // avant ceux qui le contiennent seulement ("Achat crédit du 12 mars").
+        val (exacts, autres) = trouves.partition { noeud ->
+            noeud.text?.toString()?.trim().equals(texte, ignoreCase = true) ||
+                noeud.contentDescription?.toString()?.trim().equals(texte, ignoreCase = true)
+        }
+        for (noeud in exacts + autres) {
             var candidat: AccessibilityNodeInfo? = noeud
             while (candidat != null && !candidat.isClickable) candidat = candidat.parent
             if (candidat != null) return candidat

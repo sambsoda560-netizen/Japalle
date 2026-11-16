@@ -22,7 +22,8 @@ class RuleBasedParser : IntentParser {
         val parleDEnvoi = MOTS_ENVOI.any { minuscules.contains(it) }
 
         if (parleDeCredit) {
-            val montant = montant(phrase) ?: return Intention.Inconnue
+            val montant = montant(phrase)
+                ?: return Intention.Precision("Combien de crédit veux-tu ?")
             return Intention.AcheterCredit(montant)
         }
 
@@ -32,7 +33,8 @@ class RuleBasedParser : IntentParser {
             // On retire le destinataire avant de chercher le montant,
             // pour ne pas prendre un numéro de téléphone pour une somme.
             val reste = phrase.removeRange(trouve.range)
-            val montant = montant(reste) ?: return Intention.Inconnue
+            val montant = montant(reste)
+                ?: return Intention.Precision("Combien veux-tu envoyer à ${nettoyerDestinataire(brut)} ?")
             val service =
                 if (minuscules.contains("orange")) Service.ORANGE_MONEY else Service.WAVE
             return Intention.EnvoyerArgent(montant, nettoyerDestinataire(brut), service)

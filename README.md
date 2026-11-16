@@ -13,8 +13,10 @@ Squelette de départ. Le code n'a **pas encore été compilé ni testé sur un t
 | Bouton unique + écoute en français | écrit, à tester |
 | Confirmation vocale (« … ? Dis oui, ou non. ») | écrit, à tester |
 | Comprendre « achète du crédit » / « envoie de l'argent » | écrit (règles simples), tests unitaires fournis |
-| Achat de crédit : l'agent remplit le menu `#144#` | écrit, **menu à calibrer sur un vrai téléphone** |
-| Envoi Wave par le service d'accessibilité | squelette, **écrans Wave à calibrer** |
+| Achat de crédit dans Wave | ouvre Wave et l'écran « Crédit », puis guide à la voix ; **la suite attend le relevé des écrans** |
+| Menus USSD `#144#` | écrit mais **désactivé** (`Config.USSD_ACTIF`) |
+| Envoi d'argent dans Wave | ouvre « Transfert » et écrit le nom, puis guide à la voix ; **la suite attend le relevé des écrans** |
+| Appli Orange Money | pas encore : faire le mode réglage dans l'appli |
 | Compréhension par IA (Groq ou Grok), avec questions de précision | écrit, à tester avec une clé |
 | Wolof | plus tard |
 

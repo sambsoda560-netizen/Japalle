@@ -8,8 +8,15 @@ object Config {
     /** Nom de paquet de l'appli Wave. À VÉRIFIER. */
     const val WAVE_PACKAGE = "com.wave.personal"
 
-    /** Texte du bouton d'envoi sur l'accueil de Wave. À CALIBRER sur un vrai téléphone. */
-    const val WAVE_BOUTON_ENVOYER = "Envoyer"
+    /** Boutons de l'accueil de Wave. À CALIBRER sur un vrai téléphone. */
+    val WAVE_BOUTONS_CREDIT = listOf("Crédit", "Credit", "Airtime")
+    val WAVE_BOUTONS_TRANSFERT = listOf("Transfert", "Envoyer", "Transfer", "Send")
+
+    /**
+     * Les menus USSD (#144#) sont désactivés pour l'instant : tout passe par les applis.
+     * Le code du navigateur USSD est gardé pour plus tard (téléphones sans internet).
+     */
+    const val USSD_ACTIF = false
 
     /** Menu USSD ouvert pour le crédit et Orange Money. */
     const val USSD_MENU = "#144#"
@@ -43,6 +50,9 @@ object Config {
 
     /** Temps laissé à une étape de script pour trouver son bouton, en millisecondes. */
     const val SCRIPT_TIMEOUT_MS = 8_000L
+
+    /** Temps laissé à l'appli pour s'ouvrir et à l'utilisateur pour taper son code d'entrée. */
+    const val SCRIPT_OUVERTURE_MS = 90_000L
 
     /** Temps laissé au réseau pour afficher l'écran USSD suivant. */
     const val USSD_TIMEOUT_MS = 30_000L

@@ -54,7 +54,7 @@ Ajouter une action = ajouter une intention, sa phrase de confirmation, et son sc
 
 ## L'exécution : deux moyens
 
-### 1. Menus USSD (le plus solide)
+### 1. Menus USSD (désactivés pour l'instant, `Config.USSD_ACTIF = false`)
 
 L'appli compose `#144#`, puis le service d'accessibilité lit chaque écran du menu et répond à la place de l'utilisateur. `UssdNavigator` décide avec des règles fixes :
 

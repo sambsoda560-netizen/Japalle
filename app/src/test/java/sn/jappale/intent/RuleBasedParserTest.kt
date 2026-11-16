@@ -45,7 +45,16 @@ class RuleBasedParserTest {
 
     @Test
     fun demandeIncompleteOuHorsSujet() {
-        assertEquals(Intention.Inconnue, parser.comprendre("envoie de l'argent à Fatou"))
+        assertEquals(
+            Intention.Precision("Combien veux-tu envoyer à Fatou ?"),
+            parser.comprendre("envoie de l'argent à Fatou"),
+        )
+        assertEquals(
+            Intention.Precision("Combien de crédit veux-tu ?"),
+            parser.comprendre("va sur Wave, achète-moi du crédit"),
+        )
+        // La précision donnée ensuite est ajoutée à la demande.
+        assertEquals(Intention.AcheterCredit(500), parser.comprendre("va sur Wave, achète-moi du crédit 500 francs"))
         assertEquals(Intention.Inconnue, parser.comprendre("envoie 5000"))
         assertEquals(Intention.Inconnue, parser.comprendre("quel temps fait-il"))
     }
