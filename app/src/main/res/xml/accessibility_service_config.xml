@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Le service n'écoute que les applis listées dans packageNames.
+  isAccessibilityTool reste à false : l'appli n'est pas un outil pour le handicap
+  au sens de Google Play, elle doit donc afficher un écran d'explication et de consentement.
+-->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accessibilityEventTypes="typeWindowStateChanged|typeWindowContentChanged"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:canRetrieveWindowContent="true"
+    android:description="@string/accessibilite_description"
+    android:isAccessibilityTool="false"
+    android:notificationTimeout="150"
+    android:packageNames="com.wave.personal" />

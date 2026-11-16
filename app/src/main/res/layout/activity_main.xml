@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <Button
+        android:id="@+id/bouton"
+        android:layout_width="240dp"
+        android:layout_height="240dp"
+        android:background="@drawable/bouton_rond"
+        android:contentDescription="@string/parler_description"
+        android:text="@string/parler"
+        android:textAllCaps="false"
+        android:textColor="#FFFFFF"
+        android:textSize="32sp" />
+
+    <TextView
+        android:id="@+id/etat"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:gravity="center"
+        android:text="@string/etat_repos"
+        android:textColor="#1B1B1B"
+        android:textSize="22sp" />
+
+</LinearLayout>
