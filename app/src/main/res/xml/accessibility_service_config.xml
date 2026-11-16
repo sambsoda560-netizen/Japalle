@@ -11,4 +11,4 @@
     android:description="@string/accessibilite_description"
     android:isAccessibilityTool="false"
     android:notificationTimeout="150"
-    android:packageNames="com.wave.personal" />
+    android:packageNames="com.wave.personal,com.android.phone" />

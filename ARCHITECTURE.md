@@ -53,9 +53,20 @@ Ajouter une action = ajouter une intention, sa phrase de confirmation, et son sc
 
 ## L'exécution : deux moyens
 
-### 1. Codes USSD (le plus solide)
+### 1. Menus USSD (le plus solide)
 
-L'appli compose un code (ex. le menu Orange Money) à la place de l'utilisateur. Ça marche sans internet, sur tous les téléphones, et ne dépend d'aucune autre appli. À utiliser en priorité quand un code existe.
+L'appli compose `#144#`, puis le service d'accessibilité lit chaque écran du menu et répond à la place de l'utilisateur. `UssdNavigator` décide avec des règles fixes :
+
+| L'écran affiche | L'agent fait |
+|---|---|
+| un menu numéroté | cherche la ligne voulue (« crédit », puis « moi ») et tape son numéro |
+| « montant » | tape le montant confirmé à voix haute |
+| « numéro », « bénéficiaire » | tape le numéro, s'il le connaît |
+| « 1. Confirmer » avec le bon montant affiché | confirme |
+| « code secret » | **s'arrête** et dit à l'utilisateur de le taper |
+| autre chose | **abandonne** sans rien envoyer, et affiche le menu lu |
+
+L'agent lit le menu au lieu de taper des chiffres par cœur : si Orange change l'ordre des lignes, il s'adapte ou s'arrête, mais ne choisit pas une mauvaise ligne à l'aveugle. Ça marche sans internet et sans autre appli.
 
 ### 2. Service d'accessibilité (pour Wave et les applis sans autre porte)
 
@@ -119,6 +130,7 @@ app/src/main/java/sn/jappale/
 ├── actions/
 │   └── ActionRunner.kt        choisit USSD ou script d'accessibilité
 └── accessibility/
+    ├── UssdNavigator.kt       règles pour répondre aux menus USSD
     ├── UiScript.kt            étapes d'un script
     └── AgentAccessibilityService.kt
 ```

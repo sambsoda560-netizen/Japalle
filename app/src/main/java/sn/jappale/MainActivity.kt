@@ -64,7 +64,10 @@ class MainActivity : Activity() {
 
         oreille = AndroidSpeechToText(this)
         voix = Speaker(this)
-        actions = ActionRunner(this) { message -> dire(message) }
+        actions = ActionRunner(this) { message, detail ->
+            afficher(message, detail, etiquette = "Le menu disait")
+            voix.say(message)
+        }
 
         bouton.setOnClickListener { surAppui() }
     }
@@ -185,9 +188,9 @@ class MainActivity : Activity() {
         voix.say(message)
     }
 
-    /** [entendu] : ce que le micro a compris, affiché pour aider à régler l'appli. */
-    private fun afficher(message: String, entendu: String? = null) {
-        texteEtat.text = if (entendu == null) message else "$message\n\nJ'ai entendu : « $entendu »"
+    /** [detail] : ce que le micro a compris ou ce que le menu affichait, pour aider à régler l'appli. */
+    private fun afficher(message: String, detail: String? = null, etiquette: String = "J'ai entendu") {
+        texteEtat.text = if (detail == null) message else "$message\n\n$etiquette : « $detail »"
     }
 
     private fun mettreAJourVisuel() {

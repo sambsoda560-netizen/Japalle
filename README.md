@@ -13,7 +13,7 @@ Squelette de départ. Le code n'a **pas encore été compilé ni testé sur un t
 | Bouton unique + écoute en français | écrit, à tester |
 | Confirmation vocale (« … ? Dis oui, ou non. ») | écrit, à tester |
 | Comprendre « achète du crédit » / « envoie de l'argent » | écrit (règles simples), tests unitaires fournis |
-| Achat de crédit par code USSD | écrit, **code USSD à vérifier** |
+| Achat de crédit : l'agent remplit le menu `#144#` | écrit, **menu à calibrer sur un vrai téléphone** |
 | Envoi Wave par le service d'accessibilité | squelette, **écrans Wave à calibrer** |
 | Wolof | plus tard |
 

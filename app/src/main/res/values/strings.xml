@@ -5,5 +5,5 @@
     <string name="promesse">Ton code secret, c\'est toujours toi qui le tapes.</string>
     <string name="parler_description">Appuie et dis ce que tu veux</string>
     <string name="etat_repos">Appuie sur le bouton et dis ce que tu veux.</string>
-    <string name="accessibilite_description">Jàppale prépare pour toi les envois dans Wave après ta confirmation à voix haute : il ouvre l\'écran d\'envoi et remplit le destinataire et le montant. Il ne lit jamais ton code secret et ne valide jamais un paiement à ta place.</string>
+    <string name="accessibilite_description">Jàppale agit à ta place seulement après ta confirmation à voix haute : il remplit les menus du type #144# (achat de crédit, Orange Money) et prépare les envois dans Wave. Il ne tape jamais ton code secret et ne valide jamais un paiement à ta place.</string>
 </resources>

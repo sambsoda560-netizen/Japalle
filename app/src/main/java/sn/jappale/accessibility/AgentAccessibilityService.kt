@@ -11,31 +11,48 @@ import android.view.accessibility.AccessibilityNodeInfo
 import sn.jappale.Config
 
 /**
- * Joue un UiScript dans une autre appli (Wave pour l'instant).
+ * Agit à la place de l'utilisateur dans deux endroits :
+ * - les fenêtres USSD (#144#…), en suivant un UssdPlan ;
+ * - une autre appli (Wave), en jouant un UiScript.
  *
  * Garde-fous :
- * - ne fait rien tant que start() n'a pas été appelé, donc tant que
+ * - ne fait rien tant que start()/startUssd() n'a pas été appelé, donc tant que
  *   l'utilisateur n'a pas confirmé à voix haute ;
- * - n'agit que dans l'appli visée par le script ;
- * - abandonne si une étape n'aboutit pas dans le délai prévu ;
- * - ne tape jamais de code secret et ne valide jamais un paiement.
+ * - n'agit que dans l'appli visée ;
+ * - abandonne si l'écran attendu n'arrive pas, ou s'il est imprévu ;
+ * - ne tape jamais de code secret : il s'arrête dès qu'on le demande.
  */
 class AgentAccessibilityService : AccessibilityService() {
 
     private val handler = Handler(Looper.getMainLooper())
+    private var onEnd: ((String, String?) -> Unit)? = null
+
+    // Mode script (Wave)
     private var script: UiScript? = null
     private var index = 0
-    private var onEnd: ((String) -> Unit)? = null
+
+    // Mode USSD
+    private var plan: UssdPlan? = null
+    private var etapeUssd = 0
+    private var reponsesUssd = 0
+    private var dernierEcranUssd: String? = null
 
     private val delaiDepasse = Runnable {
-        finish("Je n'ai pas réussi à préparer l'envoi. Continue toi-même dans l'appli.")
+        finish("Je n'ai pas réussi à aller au bout. Continue toi-même, ou recommence.")
     }
 
-    fun start(script: UiScript, onEnd: (String) -> Unit) {
+    fun start(script: UiScript, onEnd: (String, String?) -> Unit) {
+        reinitialiser()
         this.script = script
-        this.index = 0
         this.onEnd = onEnd
-        armerDelai()
+        armerDelai(Config.SCRIPT_TIMEOUT_MS)
+    }
+
+    fun startUssd(plan: UssdPlan, onEnd: (String, String?) -> Unit) {
+        reinitialiser()
+        this.plan = plan
+        this.onEnd = onEnd
+        armerDelai(Config.USSD_TIMEOUT_MS)
     }
 
     override fun onServiceConnected() {
@@ -51,12 +68,75 @@ class AgentAccessibilityService : AccessibilityService() {
     override fun onInterrupt() {}
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        val enCours = script ?: return
-        if (event?.packageName?.toString() != enCours.targetPackage) return
+        if (script == null && plan == null) return
         val racine = rootInActiveWindow ?: return
-        if (Config.DEBUG_ECRAN) journaliser(racine, 0)
-        avancer(enCours, racine)
+        val paquet = racine.packageName?.toString() ?: return
+
+        val planEnCours = plan
+        val scriptEnCours = script
+        if (planEnCours != null && paquet in Config.USSD_PACKAGES) {
+            avancerUssd(planEnCours, racine)
+        } else if (scriptEnCours != null && paquet == scriptEnCours.targetPackage) {
+            if (Config.DEBUG_ECRAN) journaliser(racine, 0)
+            avancer(scriptEnCours, racine)
+        }
     }
+
+    // ---- Mode USSD ----
+
+    private fun avancerUssd(planEnCours: UssdPlan, racine: AccessibilityNodeInfo) {
+        val texte = textes(racine).joinToString("\n").trim()
+        if (texte.isEmpty()) return
+        if (Config.DEBUG_ECRAN) Log.d(TAG, "USSD : $texte")
+
+        val champ = premierChamp(racine) { true }
+        if (champ == null) {
+            // Pas de champ de saisie : soit le réseau cherche encore, soit c'est un message final.
+            val boutonOk = boutonCliquable(racine, "OK")
+            if (boutonOk != null) finish("Le téléphone répond : $texte")
+            return
+        }
+
+        if (texte == dernierEcranUssd) return // déjà traité, on attend l'écran suivant
+        dernierEcranUssd = texte
+
+        when (val decision = UssdNavigator.decider(texte, planEnCours, etapeUssd)) {
+            is UssdDecision.CodeSecret ->
+                finish("C'est prêt. Tape ton code secret pour valider.")
+
+            is UssdDecision.Abandon ->
+                finish(decision.raison + " Continue toi-même.", detail = texte)
+
+            is UssdDecision.Repondre -> {
+                if (reponsesUssd >= Config.USSD_REPONSES_MAX) {
+                    finish("Le menu est trop long. Continue toi-même.", detail = texte)
+                    return
+                }
+                val envoye = remplir(champ, decision.valeur) &&
+                    Config.USSD_BOUTONS_ENVOI.any { cliquer(racine, it) }
+                if (!envoye) {
+                    finish("Je n'arrive pas à répondre au menu. Continue toi-même.", detail = texte)
+                    return
+                }
+                etapeUssd = decision.etapeSuivante
+                reponsesUssd++
+                armerDelai(Config.USSD_TIMEOUT_MS)
+            }
+        }
+    }
+
+    /** Les textes affichés, sans les boutons ni les champs de saisie. */
+    private fun textes(noeud: AccessibilityNodeInfo, sortie: MutableList<String> = mutableListOf()): List<String> {
+        val estBouton = noeud.className?.toString()?.endsWith("Button") == true
+        val texte = noeud.text?.toString()
+        if (!estBouton && !noeud.isEditable && !texte.isNullOrBlank()) sortie.add(texte)
+        for (i in 0 until noeud.childCount) {
+            noeud.getChild(i)?.let { textes(it, sortie) }
+        }
+        return sortie
+    }
+
+    // ---- Mode script (Wave) ----
 
     private fun avancer(enCours: UiScript, racine: AccessibilityNodeInfo) {
         val etape = enCours.steps.getOrNull(index) ?: run {
@@ -75,21 +155,33 @@ class AgentAccessibilityService : AccessibilityService() {
 
         index++
         val suivante = enCours.steps.getOrNull(index)
-        if (suivante is Step.StopForUser) finish(suivante.message) else armerDelai()
-    }
-
-    private fun cliquer(racine: AccessibilityNodeInfo, texte: String): Boolean {
-        val cible = racine.findAccessibilityNodeInfosByText(texte)?.firstOrNull() ?: return false
-        var noeud: AccessibilityNodeInfo? = cible
-        while (noeud != null && !noeud.isClickable) noeud = noeud.parent
-        return noeud?.performAction(AccessibilityNodeInfo.ACTION_CLICK) ?: false
+        if (suivante is Step.StopForUser) finish(suivante.message) else armerDelai(Config.SCRIPT_TIMEOUT_MS)
     }
 
     private fun ecrire(racine: AccessibilityNodeInfo, valeur: String): Boolean {
         val actif = racine.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
         val champActif = actif?.takeIf { it.isEditable && estVide(it) }
-        val champ = champActif ?: premierChampVide(racine) ?: return false
+        val champ = champActif ?: premierChamp(racine, ::estVide) ?: return false
+        return remplir(champ, valeur)
+    }
 
+    // ---- Outils communs ----
+
+    private fun cliquer(racine: AccessibilityNodeInfo, texte: String): Boolean =
+        boutonCliquable(racine, texte)?.performAction(AccessibilityNodeInfo.ACTION_CLICK) ?: false
+
+    /** Le premier élément cliquable qui porte ce texte (lui-même ou l'un de ses parents). */
+    private fun boutonCliquable(racine: AccessibilityNodeInfo, texte: String): AccessibilityNodeInfo? {
+        val trouves = racine.findAccessibilityNodeInfosByText(texte) ?: return null
+        for (noeud in trouves) {
+            var candidat: AccessibilityNodeInfo? = noeud
+            while (candidat != null && !candidat.isClickable) candidat = candidat.parent
+            if (candidat != null) return candidat
+        }
+        return null
+    }
+
+    private fun remplir(champ: AccessibilityNodeInfo, valeur: String): Boolean {
         val arguments = Bundle().apply {
             putCharSequence(
                 AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,
@@ -102,26 +194,38 @@ class AgentAccessibilityService : AccessibilityService() {
     private fun estVide(noeud: AccessibilityNodeInfo): Boolean =
         noeud.isShowingHintText || noeud.text.isNullOrEmpty()
 
-    private fun premierChampVide(noeud: AccessibilityNodeInfo): AccessibilityNodeInfo? {
-        if (noeud.isEditable && estVide(noeud)) return noeud
+    private fun premierChamp(
+        noeud: AccessibilityNodeInfo,
+        condition: (AccessibilityNodeInfo) -> Boolean,
+    ): AccessibilityNodeInfo? {
+        if (noeud.isEditable && condition(noeud)) return noeud
         for (i in 0 until noeud.childCount) {
             val enfant = noeud.getChild(i) ?: continue
-            premierChampVide(enfant)?.let { return it }
+            premierChamp(enfant, condition)?.let { return it }
         }
         return null
     }
 
-    private fun armerDelai() {
+    private fun armerDelai(duree: Long) {
         handler.removeCallbacks(delaiDepasse)
-        handler.postDelayed(delaiDepasse, Config.SCRIPT_TIMEOUT_MS)
+        handler.postDelayed(delaiDepasse, duree)
     }
 
-    private fun finish(message: String) {
+    private fun reinitialiser() {
         handler.removeCallbacks(delaiDepasse)
-        val rappel = onEnd
         script = null
+        index = 0
+        plan = null
+        etapeUssd = 0
+        reponsesUssd = 0
+        dernierEcranUssd = null
         onEnd = null
-        rappel?.invoke(message)
+    }
+
+    private fun finish(message: String, detail: String? = null) {
+        val rappel = onEnd
+        reinitialiser()
+        rappel?.invoke(message, detail)
     }
 
     /** Calibration uniquement (Config.DEBUG_ECRAN) : écrit l'arbre de l'écran dans Logcat. */
