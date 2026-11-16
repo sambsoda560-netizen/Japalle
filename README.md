@@ -28,6 +28,16 @@ Squelette de départ. Le code n'a **pas encore été compilé ni testé sur un t
 
 Android limite l'activation de l'accessibilité pour les applis installées hors Play Store. Si le service est grisé dans les paramètres : `Paramètres > Applications > Jàppale > menu ⋮ > Autoriser les paramètres restreints`.
 
+## Mode réglage : apprendre les écrans d'une appli
+
+Pour que l'agent sache piloter Wave ou l'appli Orange Money, il faut connaître leurs boutons et leurs champs.
+
+1. Dans Jàppale, appuyer sur **Mode réglage** (en bas de l'écran).
+2. Ouvrir l'appli à régler et faire l'opération à la main (par exemple un envoi), en s'arrêtant **avant** le code secret.
+3. Revenir dans Jàppale et appuyer sur **Terminer le relevé et l'envoyer**.
+
+Le relevé est un texte qui liste les boutons `[B]` et les champs `[E]` de chaque écran. Tous les chiffres sont remplacés par `#`, mais les noms (contacts, titulaire du compte) restent visibles : le relire avant de le partager. Si le relevé est vide, l'appli protège ses écrans contre l'accessibilité.
+
 ## Lancer le projet avec Android Studio
 
 1. Installer [Android Studio](https://developer.android.com/studio).

@@ -5,12 +5,15 @@ import android.animation.ObjectAnimator
 import android.animation.PropertyValuesHolder
 import android.animation.ValueAnimator
 import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings
 import android.view.View
 import android.widget.TextView
+import sn.jappale.accessibility.AgentAccessibilityService
 import sn.jappale.actions.ActionRunner
 import sn.jappale.intent.IntentParser
 import sn.jappale.intent.Intention
@@ -30,6 +33,8 @@ class MainActivity : Activity() {
     private lateinit var bouton: View
     private lateinit var halo: View
     private lateinit var texteEtat: TextView
+    private lateinit var lienReglage: TextView
+    private var releveEnCours = false
     private lateinit var pulsation: ObjectAnimator
     private lateinit var oreille: SpeechToText
     private lateinit var voix: Speaker
@@ -70,6 +75,8 @@ class MainActivity : Activity() {
         }
 
         bouton.setOnClickListener { surAppui() }
+        lienReglage = findViewById(R.id.reglage)
+        lienReglage.setOnClickListener { basculerReleve() }
     }
 
     override fun onDestroy() {
@@ -172,6 +179,41 @@ class MainActivity : Activity() {
             return
         }
         poserQuestion("Dis seulement oui, ou non.", entendu)
+    }
+
+    // ---- Mode réglage ----
+
+    /**
+     * Sert à apprendre les écrans d'une appli (Wave, Orange Money…) pour écrire son script :
+     * l'utilisateur fait l'opération à la main, l'appli note les boutons et les champs,
+     * puis propose d'envoyer ce relevé. Les chiffres sont masqués.
+     */
+    private fun basculerReleve() {
+        val service = AgentAccessibilityService.instance
+        if (service == null) {
+            dire("Active d'abord Jàppale dans Accessibilité, puis reviens.")
+            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            return
+        }
+        if (!releveEnCours) {
+            service.demarrerReleve()
+            releveEnCours = true
+            lienReglage.setText(R.string.reglage_terminer)
+            afficher(getString(R.string.reglage_consigne))
+            return
+        }
+        val texte = service.arreterReleve()
+        releveEnCours = false
+        lienReglage.setText(R.string.reglage)
+        if (texte.isBlank()) {
+            afficher("Je n'ai rien pu relever. L'appli protège peut-être ses écrans.")
+            return
+        }
+        afficher("Relevé terminé. Envoie-le pour régler l'agent.")
+        val partage = Intent(Intent.ACTION_SEND)
+            .setType("text/plain")
+            .putExtra(Intent.EXTRA_TEXT, texte)
+        startActivity(Intent.createChooser(partage, getString(R.string.reglage_envoyer)))
     }
 
     // ---- Affichage et voix ----

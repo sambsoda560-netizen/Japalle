@@ -6,4 +6,8 @@
     <string name="parler_description">Appuie et dis ce que tu veux</string>
     <string name="etat_repos">Appuie sur le bouton et dis ce que tu veux.</string>
     <string name="accessibilite_description">Jàppale agit à ta place seulement après ta confirmation à voix haute : il remplit les menus du type #144# (achat de crédit, Orange Money) et prépare les envois dans Wave. Il ne tape jamais ton code secret et ne valide jamais un paiement à ta place.</string>
+    <string name="reglage">Mode réglage</string>
+    <string name="reglage_terminer">Terminer le relevé et l\'envoyer</string>
+    <string name="reglage_envoyer">Envoyer le relevé</string>
+    <string name="reglage_consigne">Mode réglage activé. Ouvre l\'appli à régler (Wave, Orange Money…) et fais l\'opération à la main. Arrête-toi avant de taper ton code secret. Puis reviens ici et appuie sur « Terminer le relevé ».</string>
 </resources>

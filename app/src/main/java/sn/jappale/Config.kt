@@ -17,6 +17,13 @@ object Config {
     /** Applis qui affichent les fenêtres USSD. Peut changer selon la marque du téléphone. */
     val USSD_PACKAGES = setOf("com.android.phone")
 
+    /** En temps normal, le service n'écoute que ces applis. */
+    val PAQUETS_AUTORISES: Set<String>
+        get() = USSD_PACKAGES + WAVE_PACKAGE
+
+    /** Mode réglage : nombre maximal d'écrans relevés. */
+    const val RELEVE_ECRANS_MAX = 40
+
     /** Boutons possibles pour envoyer une réponse dans une fenêtre USSD. */
     val USSD_BOUTONS_ENVOI = listOf("Envoyer", "Send", "Répondre", "Reply", "OK")
 

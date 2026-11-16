@@ -99,4 +99,14 @@
         android:textColor="@color/gris"
         android:textSize="14sp" />
 
+    <!-- Pour les tests : relever les écrans d'une appli à automatiser -->
+    <TextView
+        android:id="@+id/reglage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="12dp"
+        android:text="@string/reglage"
+        android:textColor="@color/vert"
+        android:textSize="14sp" />
+
 </LinearLayout>

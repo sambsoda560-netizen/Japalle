@@ -68,6 +68,10 @@ class AgentAccessibilityService : AccessibilityService() {
     override fun onInterrupt() {}
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        if (releveEnCours) {
+            relever()
+            return
+        }
         if (script == null && plan == null) return
         val racine = rootInActiveWindow ?: return
         val paquet = racine.packageName?.toString() ?: return
@@ -79,6 +83,60 @@ class AgentAccessibilityService : AccessibilityService() {
         } else if (scriptEnCours != null && paquet == scriptEnCours.targetPackage) {
             if (Config.DEBUG_ECRAN) journaliser(racine, 0)
             avancer(scriptEnCours, racine)
+        }
+    }
+
+    // ---- Mode réglage : relever les écrans d'une appli pour écrire son script ----
+
+    private var releveEnCours = false
+    private val releve = LinkedHashSet<String>()
+
+    /** Commence à noter les écrans des autres applis, à la demande de l'utilisateur. */
+    fun demarrerReleve() {
+        reinitialiser()
+        releve.clear()
+        releveEnCours = true
+        ecouterToutesLesApplis(true)
+    }
+
+    /** Arrête le relevé et renvoie le texte à partager. */
+    fun arreterReleve(): String {
+        releveEnCours = false
+        ecouterToutesLesApplis(false)
+        val texte = releve.joinToString("\n\n")
+        releve.clear()
+        return texte.take(60_000)
+    }
+
+    private fun ecouterToutesLesApplis(toutes: Boolean) {
+        val info = serviceInfo ?: return
+        info.packageNames = if (toutes) null else Config.PAQUETS_AUTORISES.toTypedArray()
+        serviceInfo = info
+    }
+
+    private fun relever() {
+        if (releve.size >= Config.RELEVE_ECRANS_MAX) return
+        val racine = rootInActiveWindow ?: return
+        val paquet = racine.packageName?.toString() ?: return
+        if (paquet == packageName || paquet == "com.android.systemui") return
+        val lignes = StringBuilder("=== écran de $paquet ===")
+        decrire(racine, lignes)
+        releve.add(lignes.toString().take(4_000))
+    }
+
+    /** Une ligne par élément utile : [B] = cliquable, [E] = champ de saisie. Les chiffres sont masqués. */
+    private fun decrire(noeud: AccessibilityNodeInfo, sortie: StringBuilder) {
+        val texte = (noeud.text ?: noeud.contentDescription)?.toString()?.trim().orEmpty()
+        if (texte.isNotEmpty() || noeud.isEditable) {
+            val marque = when {
+                noeud.isEditable -> "[E] "
+                noeud.isClickable -> "[B] "
+                else -> ""
+            }
+            sortie.append('\n').append(marque).append(texte.replace(CHIFFRES, "#"))
+        }
+        for (i in 0 until noeud.childCount) {
+            noeud.getChild(i)?.let { decrire(it, sortie) }
         }
     }
 
@@ -243,6 +301,7 @@ class AgentAccessibilityService : AccessibilityService() {
 
     companion object {
         private const val TAG = "Jappale"
+        private val CHIFFRES = Regex("""\\d""")
 
         /** Non nul quand l'utilisateur a activé le service dans les paramètres. */
         @Volatile
